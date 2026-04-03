@@ -24,13 +24,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Components",
     description: "Learning Design Engineering",
-    images: ["/opengraph-image.png"],
   },
   twitter: {
     card: "summary_large_image",
     title: "Components",
     description: "Learning Design Engineering",
-    images: ["/twitter-image.png"],
   },
 };
 
