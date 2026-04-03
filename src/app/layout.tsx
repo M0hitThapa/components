@@ -21,17 +21,29 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://components-vert-omega.vercel.app/"),
   title: "Components",
   description: "Learning design engineering",
+
   openGraph: {
     title: "Components",
     description: "Learning Design Engineering",
+    url: "https://components-vert-omega.vercel.app/",
+    siteName: "Components",
+    images: [
+      {
+        url: "/og-image.png", 
+        width: 1200,
+        height: 630,
+      },
+    ],
+    type: "website",
   },
+
   twitter: {
     card: "summary_large_image",
     title: "Components",
     description: "Learning Design Engineering",
+    images: ["/og-image.png"], 
   },
 };
-
 
 
 export default function RootLayout({
