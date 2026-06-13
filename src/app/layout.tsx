@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
-import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { TooltipProvider } from "@/components/ui/tooltip";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
@@ -18,33 +16,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://components-vert-omega.vercel.app/"),
-  title: "Components",
-  description: "Learning design engineering",
-
-  openGraph: {
-    title: "Components",
-    description: "Learning Design Engineering",
-    url: "https://components-vert-omega.vercel.app/",
-    siteName: "Components",
-    images: [
-      {
-        url: "/og-image.png", 
-        width: 1200,
-        height: 630,
-      },
-    ],
-    type: "website",
-  },
-
-  twitter: {
-    card: "summary_large_image",
-    title: "Components",
-    description: "Learning Design Engineering",
-    images: ["/og-image.png"], 
-  },
+  title: "Profile Card",
+  description: "Profile Card Component",
 };
-
 
 export default function RootLayout({
   children,
@@ -53,17 +27,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={cn("font-sans", inter.variable)}>
-      
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <TooltipProvider>
-          {children}
-            
-          </TooltipProvider>
-      
-        </ThemeProvider>
+        {children}
       </body>
     </html>
   );
