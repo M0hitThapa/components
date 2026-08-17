@@ -1,10 +1,10 @@
-import { SkewedButton } from "@/components/skewed-button";
-import { TailwindLearn } from "@/components/tailwind-learn";
+
+import { Transition } from "@/components/transition";
 
 export default function Home() {
   return (
     <main>
-      <SkewedButton />
+      <Transition />
     </main>
   );
 }
