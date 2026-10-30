@@ -1,11 +1,10 @@
+import { HoveButton } from "@/components/hover-button";
 
-import { HoverCard } from "@/components/hover-component";
-import { Transition } from "@/components/transition";
 
 export default function Home() {
   return (
-    <main>
-      <HoverCard />
+    <main className="flex h-screen items-center justify-center ">
+      <HoveButton />
     </main>
   );
 }
