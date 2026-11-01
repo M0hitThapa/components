@@ -1,10 +1,11 @@
-import { HoveButton } from "@/components/hover-button";
+import { FeedbackComponent } from "@/components/feedback";
+
 
 
 export default function Home() {
   return (
-    <main className="flex h-screen items-center justify-center ">
-      <HoveButton />
+    <main className="flex h-screen items-center justify-center bg-neutral-800">
+      <FeedbackComponent />
     </main>
   );
 }
