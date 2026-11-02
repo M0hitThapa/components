@@ -1,82 +1,201 @@
+
+
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import { Loader } from "lucide-react";
+
+const TITLE = "Feedback";
+const SPRING = { type: "spring" as const, duration: 0.4, bounce: 0 };
+
+const WIDTH = 400;
+const HEIGHT = 200;
 
 export const FeedbackComponent = () => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
   const ref = useRef<HTMLDivElement>(null);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  useEffect(() => {
-    if (!open) return;
+  useClickOutside(ref, () => setOpen(false));
 
-    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("touchstart", handleClickOutside);
+  const clearTimers = () => {
+    timers.current.forEach(clearTimeout);
+    timers.current = [];
+  };
 
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
-    };
-  }, [open]);
+  useEffect(() => clearTimers, []);
+
+  const handleOpen = () => {
+
+    clearTimers();
+    setSubmitted(false);
+    setIsLoading(false);
+    setValue("");
+    setOpen(true);
+  };
+
+  const handleSubmit = () => {
+    if (isLoading || !value.trim()) return;
+    setIsLoading(true);
+
+    timers.current.push(
+      setTimeout(() => {
+        setIsLoading(false);
+        setSubmitted(true);
+
+        timers.current.push(setTimeout(() => setOpen(false), 1500));
+      }, 1500)
+    );
+  };
+
   return (
-    <div className="flex items-center justify-center">
-      <AnimatePresence mode="popLayout">
-        {!open ? (
-          <motion.button
-            key="button"
-            layoutId="feedback-form"
-            onClick={() => setOpen(true)}
-            className="bg-white text-neutral-800 px-4 py-2 rounded-md font-medium border border-neutral-100 cursor-pointer"
-          >
-            <motion.p layoutId="position">Feedback</motion.p>
-          </motion.button>
-        ) : (
-          <motion.div
-            key="form"
-            ref={ref}
-            layoutId="feedback-form"
-            className="bg-neutral-100 p-1 rounded-lg"
-          >
-            <div className="relative border border-neutral-200 rounded-sm bg-white overflow-hidden">
-              <textarea
-                autoFocus
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                className="h-36 w-90  resize-none block focus:outline-none p-2"
-              />
-              {!value && (
-                <motion.p
-                  layoutId="position"
-                  className="pointer-events-none absolute left-2 top-2 text-neutral-500"
-                >
-                  Feedback
-                </motion.p>
-              )}
-              <div className="relative">
-                <SvgLine className="block" />
+    <div className="flex min-h-75 w-full items-center justify-center">
 
-                <div className="absolute left-0 top-1/2 h-2 w-1 -translate-x-px -translate-y-1/2 rounded-r-full border border-l-0 border-neutral-200 bg-neutral-100" />
+      <div className="relative">
 
-                <div className="absolute right-0 top-1/2 h-2 w-1 translate-x-px -translate-y-1/2 rounded-l-full border border-r-0 border-neutral-200 bg-neutral-100" />
-              </div>
+        <motion.button
+          layoutId={`${TITLE}-wrapper`}
+          onClick={handleOpen}
+          style={{ borderRadius: 8 }}
+          className="flex h-9 items-center border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-800 outline-none cursor-pointer"
+        >
+          <motion.span layoutId={`${TITLE}-title`} className="whitespace-nowrap">
+            {TITLE}
+          </motion.span>
+        </motion.button>
 
-              <div className="py-2.5 flex items-center justify-end px-2">
-                <button className="px-2  py-1 rounded-sm bg-linear-to-b shadow-[inset_0_0_1px_1px_#ffffff14,0_1px_1.5px_#00000052,0_0_0_0.5px_#1a94ff] from-blue-400 to-blue-500 text-white text-xs text-shadow-md inset-shadow-white font-semibold shadow-[0px 0px 2px 2px,#000000 ]">
-                  Send feedback
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              ref={ref}
+              layoutId={`${TITLE}-wrapper`}
+              style={{
+                borderRadius: 10,
+                width: WIDTH,
+                height: HEIGHT,
+
+                marginLeft: -WIDTH / 2,
+                marginTop: -HEIGHT / 2,
+              }}
+              className="absolute left-1/2 top-1/2 z-50 w-107.5 h-50 overflow-hidden bg-neutral-100 p-1 shadow-[0_0_0_1px_rgba(0,0,0,0.08),0px_1px_2px_rgba(0,0,0,0.04)] outline-none"
+            >
+
+              <motion.span
+                aria-hidden
+                layoutId={`${TITLE}-title`}
+                className="pointer-events-none absolute left-3.25 top-3.25 z-30 text-sm text-neutral-500 whitespace-nowrap data-[hidden=true]:text-transparent"
+                data-hidden={!!value || submitted}
+              >
+                {TITLE}
+              </motion.span>
+
+              <AnimatePresence mode="popLayout">
+                {submitted ? (
+                  <motion.div
+                    key="success"
+                    initial={{ y: -32, opacity: 0, filter: "blur(4px)" }}
+                    animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
+                    transition={SPRING}
+                    className="flex h-full flex-col items-center justify-center"
+                  >
+                    <FeedbackSuccess />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="form"
+                    exit={{ y: 8, opacity: 0, filter: "blur(4px)" }}
+                    transition={SPRING}
+                    style={{ borderRadius: 6 }}
+                    className="flex h-full flex-col  border border-neutral-200 bg-white"
+                  >
+                    <textarea
+                      autoFocus
+                      value={value}
+                      onChange={(e) => setValue(e.target.value)}
+                      className="block w-full flex-1 resize-none bg-transparent p-2 text-sm focus:outline-none"
+                    />
+
+                    <div className="relative shrink-0">
+                      <div className=" overflow-hidden">
+                        <SvgLine className="block" />
+                      </div>
+                      <Notch side="left" />
+                      <Notch side="right" />
+                    </div>
+
+                    <div className="flex shrink-0 items-center justify-end px-2 py-2.5">
+                      <button
+                        onClick={handleSubmit}
+                        className="flex h-7 w-28 cursor-pointer items-center justify-center rounded-sm bg-linear-to-b from-blue-400 to-blue-500 px-2 py-1 text-xs font-semibold text-white shadow-[inset_0_0_1px_1px_#ffffff14,0_1px_1.5px_#00000052,0_0_0_0.5px_#1a94ff]"
+                      >
+                        {isLoading ? (
+                          <Loader className="size-5 animate-spin bg-linear-to-tl from-neutral-100 to-neutral-500 bg-clip-text" />
+                        ) : (
+                          "Send feedback"
+                        )}
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
+};
+
+const FeedbackSuccess = () => (
+  <>
+    <svg
+      width="32"
+      height="32"
+      viewBox="0 0 32 32"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="-mt-1"
+    >
+      <path
+        d="M27.6 16C27.6 17.5234 27.3 19.0318 26.717 20.4392C26.1341 21.8465 25.2796 23.1253 24.2025 24.2025C23.1253 25.2796 21.8465 26.1341 20.4392 26.717C19.0318 27.3 17.5234 27.6 16 27.6C14.4767 27.6 12.9683 27.3 11.5609 26.717C10.1535 26.1341 8.87475 25.2796 7.79759 24.2025C6.72043 23.1253 5.86598 21.8465 5.28302 20.4392C4.70007 19.0318 4.40002 17.5234 4.40002 16C4.40002 12.9235 5.62216 9.97301 7.79759 7.79759C9.97301 5.62216 12.9235 4.40002 16 4.40002C19.0765 4.40002 22.027 5.62216 24.2025 7.79759C26.3779 9.97301 27.6 12.9235 27.6 16Z"
+        fill="#2090FF"
+        fillOpacity="0.16"
+      />
+      <path
+        d="M12.1334 16.9667L15.0334 19.8667L19.8667 13.1M27.6 16C27.6 17.5234 27.3 19.0318 26.717 20.4392C26.1341 21.8465 25.2796 23.1253 24.2025 24.2025C23.1253 25.2796 21.8465 26.1341 20.4392 26.717C19.0318 27.3 17.5234 27.6 16 27.6C14.4767 27.6 12.9683 27.3 11.5609 26.717C10.1535 26.1341 8.87475 25.2796 7.79759 24.2025C6.72043 23.1253 5.86598 21.8465 5.28302 20.4392C4.70007 19.0318 4.40002 17.5234 4.40002 16C4.40002 12.9235 5.62216 9.97301 7.79759 7.79759C9.97301 5.62216 12.9235 4.40002 16 4.40002C19.0765 4.40002 22.027 5.62216 24.2025 7.79759C26.3779 9.97301 27.6 12.9235 27.6 16Z"
+        stroke="#2090FF"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+    <h3 className="mb-1 mt-2 text-sm font-medium text-neutral-800">
+      Thank you for your feedback! 🙏
+    </h3>
+  </>
+);
+
+const useClickOutside = (
+  ref: RefObject<HTMLElement | null>,
+  handler: (event: MouseEvent | TouchEvent) => void
+) => {
+  useEffect(() => {
+    const listener = (event: MouseEvent | TouchEvent) => {
+      if (!ref.current || ref.current.contains(event.target as Node)) return;
+      handler(event);
+    };
+    document.addEventListener("mousedown", listener);
+    document.addEventListener("touchstart", listener);
+    return () => {
+      document.removeEventListener("mousedown", listener);
+      document.removeEventListener("touchstart", listener);
+    };
+  }, [ref, handler]);
 };
 
 const SvgLine = (props: React.SVGProps<SVGSVGElement>) => {
@@ -86,7 +205,6 @@ const SvgLine = (props: React.SVGProps<SVGSVGElement>) => {
       width="388"
       height="1"
       viewBox="0 0 388 1"
-
       xmlns="http://www.w3.org/2000/svg"
     >
       <path
@@ -96,3 +214,24 @@ const SvgLine = (props: React.SVGProps<SVGSVGElement>) => {
     </svg>
   );
 };
+
+const Notch = ({ side }: { side: "left" | "right" }) => (
+  <svg
+    width="6"
+    height="10"
+    viewBox="0 0 6 10"
+    fill="none"
+    className={`absolute top-1/2 z-10 -translate-y-1/2 ${
+      side === "left" ? "-left-px" : "-right-px -scale-x-100"
+    }`}
+  >
+    <path
+      d="M0 0.5C3 0.5 5.5 2.2 5.5 5C5.5 7.8 3 9.5 0 9.5Z"
+      fill="#f5f5f5"
+    />
+    <path
+      d="M0 0.5C3 0.5 5.5 2.2 5.5 5C5.5 7.8 3 9.5 0 9.5"
+      stroke="#e5e5e5"
+    />
+  </svg>
+);
